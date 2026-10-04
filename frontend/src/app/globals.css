@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Clash", "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+body {
+  background-color: #fbf4e9;
+  color: #2b2420;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(43, 36, 32, 0.08) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.outline-text {
+  -webkit-text-stroke: 1.5px #2b2420;
+  color: transparent;
+}
+
+::selection {
+  background: #f3c969;
+  color: #2b2420;
+}
