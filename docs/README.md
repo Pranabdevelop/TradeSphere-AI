@@ -1,191 +1,765 @@
-# 🌐 TradeSphere AI — A Multi-Agent Machine-Learning & Reinforcement-Learning Trading Lab
+# 🌐 TradeSphere AI
 
-> AI/ML final-year minor project. Train competing AI trading agents on real market data, score them on
-> the same out-of-sample period, stress-test them with market shocks, and analyse their risk, all from
-> one interactive dashboard.
+### Autonomous Multi-Agent Algorithmic Trading & Risk Analysis Platform
 
+TradeSphere AI is an AI/ML-based algorithmic trading research platform that brings together **Machine Learning, Reinforcement Learning, Market Regime Detection, Multi-Agent Decision Making, Backtesting, Risk Analysis, Portfolio Optimization, and Sentiment Analysis** into one interactive trading laboratory.
+
+The project is designed to evaluate trading strategies fairly using historical market data, walk-forward validation, transaction costs, risk metrics, and simulated market stress scenarios.
+
+> ⚠️ **Disclaimer:** TradeSphere AI is an educational and research project. It does not provide financial advice, execute real trades, or connect to a live brokerage account.
 
 ---
 
-## 1. Problem statement
+## 🚀 Live Demo
 
-Retail investors and students often judge a trading idea by looking at one lucky backtest. Real
-evaluation needs (a) no look-ahead bias, (b) transaction costs, (c) fair comparison against simple
-baselines, and (d) an idea of how the strategy behaves in a crash. TradeSphere AI builds this
-evaluation pipeline and puts several AI/ML strategies through it.
+### 🌐 Live Website
 
-## 2. What makes this different from LLM-based simulators (e.g. StockAgent)
+**[TradeSphere AI — Live Demo](https://trade-sphere-ai-ten.vercel.app/)**
 
-| | LLM simulator (StockAgent-style) | **TradeSphere AI** |
-|---|---|---|
-| Market | Simulated, agents are prompted LLMs | **Real historical data** (Yahoo Finance) or built-in synthetic market |
-| Intelligence | Prompt-driven LLM agents (needs paid API keys) | **Trained** ML models + **Reinforcement Learning** (runs free, offline) |
-| Goal | Study how external factors change trading behaviour | **Compare strategies fairly**, quantify risk, stress-test |
-| Evaluation | Behavioural analysis | Walk-forward validation, costs, Sharpe/Sortino/Drawdown, VaR, Monte-Carlo |
-| Extras | — | Regime detection, ensemble "Council", portfolio optimiser, sentiment tilt |
+Explore the interactive Gen-Z glassmorphic dashboard and simulated multi-agent trading council.
 
-The code is written from scratch; nothing is copied from that repository.
+The deployed interface demonstrates agent consensus, market-regime analysis, risk controls, and paper-portfolio concepts. The live demo does **not** connect to live market data or execute broker orders.
 
-## 3. Features
+---
 
-1. **Data layer:** any Yahoo ticker (`RELIANCE.NS`, `^NSEI`, `AAPL`…), with an automatic offline synthetic-market fallback.
-2. **Feature engineering:** 16 technical indicators (returns, volatility, RSI, MACD, Bollinger, ATR, SMA gaps, volume z-score…).
-3. **ML forecaster:** Random Forest / Gradient Boosting / Logistic Regression predicting "will price be higher in *h* days?" with **walk-forward validation** and a label-leakage guard.
-4. **Market-regime detection:** Gaussian Mixture Model classifies days as Bull / Sideways / Bear.
-5. **Reinforcement-learning agent:** tabular **Q-learning** (18 market states × position × {flat, long}) that is re-trained walk-forward.
-6. **Agent Arena:** 7 agents compete on the same out-of-sample window:
-   Buy & Hold, Momentum (SMA cross), Mean Reversion (RSI), ML Forecaster, Regime Switcher, RL Q-Learner and a **Council** (ensemble that averages four agents).
-7. **Realistic backtester:** transaction costs, position sizing, optional **volatility-targeting risk overlay**.
-8. **Stress-test lab:** inject a Flash crash / Rate-hike bear phase / Melt-up / Volatility storm and compare agents before vs. after.
-9. **Risk lab:** historical VaR & CVaR (95/99 %), bootstrap Monte-Carlo fan chart, probability of loss.
-10. **Portfolio lab:** correlation heat-map and Markowitz efficient frontier (max-Sharpe and min-volatility weights).
-11. **Sentiment lab:** lexicon-based headline scoring with negation handling; tilts the ML agent's exposure.
-12. **Explainability:** feature-importance chart, RL learning curve, per-agent exposure plot.
+## 📂 Source Code
 
-## 4. Architecture
+**[GitHub Repository](https://github.com/Pranabdevelop/TradeSphere-AI)**
 
+---
+
+# 🎯 Problem Statement
+
+Trading strategies can easily look successful when evaluated using a single backtest.
+
+A reliable evaluation system should consider:
+
+- Look-ahead bias
+- Transaction costs
+- Out-of-sample performance
+- Risk-adjusted returns
+- Market regimes
+- Portfolio risk
+- Extreme market conditions
+- Comparison against simple baseline strategies
+
+TradeSphere AI addresses these challenges by creating an environment where multiple trading agents can be trained, evaluated, compared, and stress-tested using a consistent evaluation pipeline.
+
+---
+
+# ✨ Key Features
+
+## 🤖 Multi-Agent Trading Arena
+
+The platform evaluates seven different trading approaches on the same out-of-sample period:
+
+| Agent | Strategy |
+|---|---|
+| 🏦 Buy & Hold | Passive benchmark |
+| 📈 Momentum | SMA crossover |
+| 🔄 Mean Reversion | RSI-based strategy |
+| 🧠 ML Forecaster | Machine-learning prediction |
+| 🌦️ Regime Switcher | Market-regime based strategy |
+| 🎯 Q-Learning Agent | Reinforcement-learning strategy |
+| 👥 Council | Ensemble of multiple agents |
+
+This allows different strategies to be compared under the same conditions.
+
+---
+
+# 🧠 Machine Learning Forecaster
+
+The ML pipeline predicts whether the price will be higher after a specified prediction horizon.
+
+Supported models include:
+
+- Random Forest
+- Gradient Boosting
+- Logistic Regression
+
+The model uses historical market features and **walk-forward validation** instead of randomly mixing future and past observations.
+
+A label-leakage guard is also included to prevent future information from influencing historical predictions.
+
+---
+
+# 🎯 Reinforcement Learning
+
+TradeSphere AI includes a **tabular Q-Learning trading agent**.
+
+The RL agent learns from market states based on:
+
+- RSI
+- Trend
+- Volatility
+- Current position
+
+Available actions:
+
+```text
+Flat
+Long
 ```
-Yahoo Finance / synthetic data
-          │
-          ▼
-   features.py (16 indicators) ──► models.py ──► walk-forward P(up)  ─┐
-          │                         └────────► GMM regime detector ──┤
-          │                                                          ▼
-          └───────────────► agents.py: BuyHold · Momentum · MeanReversion · MLForecaster
-                                       · RegimeSwitcher · QLearner (RL)
-                                                   │  target exposure 0..1
-                                                   ▼
-                     arena.py ── Council (ensemble) ─► backtest.py (costs, metrics)
-                                                   │
-                     scenarios.py (shocks)         ▼
-                     risk.py · sentiment.py ─► app.py (Streamlit dashboard, 7 tabs)
+
+The Q-learning update follows:
+
+```text
+Q(s,p,a) ← Q(s,p,a) + α[
+    r + γ max Q(s',p,a') − Q(s,p,a)
+]
 ```
 
-## 5. Folder structure
+The agent uses an **ε-greedy exploration strategy** that gradually reduces exploration during training.
 
+The deliberately small state space makes the RL agent fast and easier to explain.
+
+---
+
+# 🌦️ Market Regime Detection
+
+Market conditions can change significantly over time.
+
+TradeSphere AI uses a **Gaussian Mixture Model (GMM)** to classify market behavior into:
+
+- 🟢 Bull
+- 🟡 Sideways
+- 🔴 Bear
+
+The detected regime can influence how trading agents manage their exposure.
+
+---
+
+# 👥 Agent Council
+
+One of the key ideas behind TradeSphere AI is that a trading decision should not necessarily depend on one strategy.
+
+The **Agent Council** combines multiple perspectives to generate a weighted consensus.
+
+The live demo showcases four simulated perspectives:
+
+### 📈 Momentum Agent
+
+Focuses on trend continuation and breakout opportunities.
+
+### 📊 Quant Hedger
+
+Focuses on downside and macro-risk conditions.
+
+### 🌦️ Regime Detector
+
+Tracks the current market phase and risk-on/risk-off conditions.
+
+### 🛡️ Chief Risk Officer
+
+Focuses on position sizing, stops, and risk limits.
+
+The agents provide confidence scores and voting weights which are combined into a consensus signal. The deployed feed is explicitly simulated for demonstration and is not connected to live market data.
+
+---
+
+# 📊 Backtesting Engine
+
+The backtesting engine evaluates trading strategies while considering realistic trading constraints.
+
+It supports:
+
+- Transaction costs
+- Position sizing
+- Portfolio exposure
+- Volatility targeting
+- Out-of-sample evaluation
+
+### Performance Metrics
+
+The system calculates:
+
+- Total Return
+- CAGR
+- Annual Volatility
+- Sharpe Ratio
+- Sortino Ratio
+- Calmar Ratio
+- Maximum Drawdown
+- Win Rate
+- Exposure
+- Trade Count
+
+---
+
+# 🛡️ Risk Analysis Lab
+
+TradeSphere AI evaluates both **returns and downside risk**.
+
+## Value at Risk — VaR
+
+Historical VaR is calculated at:
+
+- 95% confidence
+- 99% confidence
+
+## Conditional Value at Risk — CVaR
+
+CVaR measures the average loss in the extreme tail beyond the VaR threshold.
+
+## Monte Carlo Simulation
+
+Bootstrap-based Monte Carlo simulations are used to explore possible future return distributions and estimate:
+
+- Probability of loss
+- Potential drawdowns
+- Return uncertainty
+- Tail risk
+
+---
+
+# 💥 Stress Testing
+
+Trading strategies can be tested against simulated extreme market conditions.
+
+### 📉 Flash Crash
+
+Simulates a sudden severe market decline.
+
+### 📉 Rate-Hike Bear Market
+
+Simulates an extended bearish environment.
+
+### 📈 Melt-Up
+
+Simulates an unusually strong bullish market.
+
+### 🌪️ Volatility Storm
+
+Simulates a period of extreme market volatility.
+
+Stress testing helps determine how strategies behave when market conditions become abnormal.
+
+---
+
+# 📈 Portfolio Optimization
+
+The Portfolio Lab provides quantitative portfolio analysis.
+
+It includes:
+
+- Asset correlation analysis
+- Correlation heatmaps
+- Markowitz Efficient Frontier
+- Maximum-Sharpe portfolio
+- Minimum-volatility portfolio
+- Portfolio weight analysis
+
+This allows users to study the relationship between **portfolio risk and expected return**.
+
+---
+
+# 📰 Sentiment Analysis
+
+TradeSphere AI includes a lightweight financial headline sentiment engine.
+
+It supports:
+
+- Positive sentiment detection
+- Negative sentiment detection
+- Neutral sentiment
+- Negation handling
+- Sentiment-based exposure adjustment
+
+The sentiment component can influence the ML agent's exposure.
+
+---
+
+# 🔬 Explainability
+
+TradeSphere AI focuses on making AI-driven decisions easier to understand.
+
+The project provides visual analysis for:
+
+- Feature importance
+- Agent exposure
+- Trading signals
+- Market regimes
+- RL learning curves
+- Strategy performance
+- Risk metrics
+
+The goal is to understand not only **what the system predicts**, but also how different strategies contribute to the final decision.
+
+---
+
+# 🏗️ System Architecture
+
+```text
+                       ┌─────────────────────┐
+                       │     Market Data     │
+                       │ Yahoo Finance /     │
+                       │ Synthetic Market    │
+                       └──────────┬──────────┘
+                                  │
+                                  ▼
+                       ┌─────────────────────┐
+                       │ Feature Engineering │
+                       │   16 Indicators     │
+                       └──────────┬──────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              │                   │                   │
+              ▼                   ▼                   ▼
+      ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+      │ ML Forecaster │   │ Regime Model  │   │ Q-Learning RL │
+      │ RF / GB / LR  │   │      GMM      │   │     Agent     │
+      └───────┬───────┘   └───────┬───────┘   └───────┬───────┘
+              │                   │                   │
+              └───────────────────┼───────────────────┘
+                                  ▼
+                       ┌─────────────────────┐
+                       │    Agent Arena      │
+                       │                     │
+                       │ Buy & Hold          │
+                       │ Momentum            │
+                       │ Mean Reversion      │
+                       │ ML Forecaster       │
+                       │ Regime Switcher     │
+                       │ Q-Learning          │
+                       │ Council             │
+                       └──────────┬──────────┘
+                                  │
+                                  ▼
+                       ┌─────────────────────┐
+                       │    Backtesting      │
+                       │ Costs + Metrics     │
+                       └──────────┬──────────┘
+                                  │
+             ┌────────────────────┼────────────────────┐
+             ▼                    ▼                    ▼
+      ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+      │ Risk Analysis│     │ Stress Tests │     │  Portfolio   │
+      │ VaR / CVaR   │     │ Market Shocks│     │ Optimization │
+      │ Monte Carlo  │     │              │     │ Efficient    │
+      └──────────────┘     └──────────────┘     │ Frontier     │
+                                                └──────────────┘
+                                  │
+                                  ▼
+                       ┌─────────────────────┐
+                       │ Interactive Frontend│
+                       │ Next.js / React     │
+                       └─────────────────────┘
 ```
-TradeSphereAI/
+
+---
+
+# 📁 Project Structure
+
+```text
+TradeSphere-AI/
+│
 ├── backend/
-│   ├── app.py                 # Streamlit dashboard
-│   ├── run_demo.py            # command-line demo (saves chart + CSV)
-│   ├── test_pipeline.py       # unit tests incl. look-ahead checks
+│   ├── app.py
+│   ├── run_demo.py
+│   ├── test_pipeline.py
 │   ├── requirements.txt
+│   │
 │   └── tradesphere/
 │       ├── __init__.py
-│       ├── data.py            # yfinance + synthetic market
-│       ├── features.py        # indicators, target
-│       ├── models.py          # walk-forward ML, evaluation, regimes
-│       ├── agents.py          # all trading agents incl. Q-learning
-│       ├── backtest.py        # engine + performance metrics
-│       ├── arena.py           # orchestrates agents, council, stress scenarios
-│       ├── risk.py            # VaR/CVaR, Monte-Carlo, efficient frontier
-│       └── sentiment.py       # headline sentiment
+│       ├── data.py
+│       ├── features.py
+│       ├── models.py
+│       ├── agents.py
+│       ├── backtest.py
+│       ├── arena.py
+│       ├── risk.py
+│       └── sentiment.py
+│
 ├── frontend/
-│   ├── src/app/               # Next.js App Router pages and global styles
-│   ├── src/components/        # reusable React components
+│   ├── src/
+│   │   ├── app/
+│   │   └── components/
 │   └── package.json
-└── docs/                      # architecture, design, PRD, rules, and project notes
+│
+├── docs/
+│
+├── pyrightconfig.json
+└── README.md
 ```
 
-## 6. Setup & run
+The repository currently separates the Python trading/analysis backend from the Next.js frontend.
 
-Create and install the Python environment from the project root:
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+
+## Backend & AI
+
+- Python
+- Scikit-learn
+- Pandas
+- NumPy
+- Machine Learning
+- Reinforcement Learning
+- Q-Learning
+- Gaussian Mixture Models
+
+## Quantitative Finance
+
+- Algorithmic Trading
+- Backtesting
+- Technical Indicators
+- Risk Management
+- Portfolio Optimization
+- Markowitz Efficient Frontier
+- Monte Carlo Simulation
+- VaR / CVaR
+
+## Data
+
+- Yahoo Finance
+- Historical Market Data
+- Synthetic Market Data
+
+## Development
+
+- Git
+- GitHub
+- Pytest
+- Streamlit
+- Vercel
+
+---
+
+# ⚙️ Installation
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/Pranabdevelop/TradeSphere-AI.git
+
+cd TradeSphere-AI
+```
+
+---
+
+## 2. Create Python Environment
+
+### Windows
 
 ```powershell
 py -m venv backend\.venv
+```
+
+Activate:
+
+```powershell
 backend\.venv\Scripts\Activate.ps1
+```
+
+---
+
+## 3. Install Backend Dependencies
+
+```powershell
 python -m pip install -r backend\requirements.txt
 ```
 
-In a PowerShell terminal, start the backend:
+---
+
+## 4. Start the Backend
 
 ```powershell
-Set-Location backend
+cd backend
 python -m streamlit run app.py
 ```
 
-In a second terminal, start the frontend:
+The Streamlit dashboard will normally be available at:
+
+```text
+http://localhost:8501
+```
+
+---
+
+## 5. Start the Frontend
+
+Open a second terminal:
 
 ```powershell
-Set-Location frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-Open the frontend at `http://localhost:3000` and the Streamlit dashboard at the URL printed by
-Streamlit (usually `http://localhost:8501`). The frontend is currently a static UI shell and does not
-call the Python backend. To run backend tests or the headless demo, run these from `backend/`:
+The frontend will normally run at:
+
+```text
+http://localhost:3000
+```
+
+The repository's current setup instructions use the Streamlit backend and Next.js frontend separately.
+
+---
+
+# 🧪 Testing
+
+Run the test suite:
 
 ```powershell
+cd backend
 python -m pytest -q
+```
+
+The project includes tests for important parts of the trading pipeline, including feature generation, ML signals, regime detection, RL decisions, and look-ahead protection.
+
+---
+
+# 📊 Running the Demo
+
+Run the command-line demonstration:
+
+```powershell
+cd backend
+
 python run_demo.py --ticker TCS.NS
 ```
 
-For Bash, replace the environment setup with `python3 -m venv backend/.venv`,
-`source backend/.venv/bin/activate`, and `python -m pip install -r backend/requirements.txt`.
-No API keys are required.
+Example tickers:
 
-## 7. Methodology (what to explain in your report / viva)
+```text
+TCS.NS
+RELIANCE.NS
+^NSEI
+AAPL
+```
 
-**Walk-forward validation.** A random train/test split leaks the future in time-series. Here the model is
-re-trained every 40 days on an expanding window and predicts only the *next* block. The label of row *i*
-uses the price at *i + h*, so rows are only used for training once that label is actually known
-(`walk_forward_proba` in `models.py`).
-
-**Fair comparison.** Every agent starts in cash, pays the same transaction cost, and is scored only on the
-final 40 % of history. The RL agent and ML model see only data before each decision.
-
-**Q-learning update.**
-`Q(s,p,a) ← Q(s,p,a) + α [ r + γ · max_a' Q(s',a,a') − Q(s,p,a) ]`,
-where the state is (RSI bucket, trend bucket, volatility bucket) and current position *p*, the action is
-"flat / long", and the reward is `100 · (a · next_return − |a − p| · cost)`.
-Exploration follows an ε-greedy schedule that decays with the episode count.
-
-**Regime detection.** A 3-component Gaussian Mixture on (20-day mean return, 20-day volatility).
-Clusters are named by their mean return, and the model is fitted on the first part of the data only.
-
-**Metrics.** Total return, CAGR, annual volatility, Sharpe, Sortino, maximum drawdown, Calmar, win rate,
-exposure, trade count; risk: historical VaR / CVaR and bootstrap Monte-Carlo.
-
-**Tests.** `backend/test_pipeline.py` proves that features, ML signals, regimes and the RL agent give identical
-decisions on past days even when future data is deleted (no look-ahead).
-
-## 8. Honest results & limitations (write this in your report — examiners like it)
-
-* Predicting price direction is extremely hard. Expect ROC-AUC ≈ 0.50–0.58; **an ML agent will often
-  fail to beat Buy & Hold**, especially after costs. The value of the project is the *rigorous evaluation*,
-  and agents often win on **risk** (lower drawdown / volatility) rather than raw return.
-* On the built-in synthetic market, results vary a lot between random seeds; this is expected.
-* The RL state space is deliberately small (18 states) so it is explainable and trains in seconds.
-* Long-only, single-asset trading; no slippage or liquidity model; daily bars only.
-* The regime and sentiment components are simple and are meant to be extended (see below).
-* This is an **educational project, not investment advice**.
-
-## 9. Ideas to extend (for extra marks)
-
-* Replace Q-table with a **DQN / PPO** agent (`torch` or `stable-baselines3`).
-* Add an **LSTM / Transformer** forecaster and compare it with the tree models.
-* Replace the sentiment lexicon with **FinBERT** and pull real news via NewsAPI / RSS.
-* Multi-asset RL agent that outputs portfolio weights (use the efficient-frontier module as a baseline).
-* Add short-selling, stop-loss / take-profit, and slippage models.
-* Deploy on Streamlit Community Cloud.
-
-## 10. Likely viva questions
-
-1. *Why walk-forward instead of `train_test_split`?* → Prevents look-ahead bias in time series.
-2. *Why is accuracy alone misleading?* → Class imbalance; compare to the majority baseline; also use AUC.
-3. *Why did your ML agent lose to Buy & Hold?* → Weak signal + transaction costs; see Section 8.
-4. *Explain the Q-learning update and the role of α, γ and ε.*
-5. *What is Sharpe vs. Sortino vs. maximum drawdown?*
-6. *What is VaR/CVaR and how did you compute it?* → Historical percentile of daily returns / mean of the tail.
-7. *Why did you include a volatility-targeting overlay?* → Reduces exposure when risk rises.
-8. *How would you scale this to many stocks?* → Portfolio-level RL, batch data pipeline, database.
-
-## 11. Suggested report outline
-
-Abstract → Introduction → Literature survey (LLM trading agents, RL for trading, walk-forward testing) →
-Problem statement → System design (Section 4) → Implementation (Section 7) → Results (leaderboard,
-equity curves, stress test, risk) → Limitations → Conclusion & future work → References.
+The system also provides a synthetic-market fallback for offline experimentation.
 
 ---
-*Disclaimer: for education and research only. Nothing here is financial advice.*
+
+# 🔐 Walk-Forward Validation
+
+Financial time-series data cannot be evaluated like ordinary random datasets.
+
+Using a random train/test split can accidentally expose the model to future information.
+
+TradeSphere AI uses **walk-forward validation**:
+
+```text
+Historical Data
+       │
+       ▼
+   Training
+       │
+       ▼
+    Predict
+       │
+       ▼
+ Future Block
+       │
+       ▼
+Expand Training Window
+       │
+       └──────────────► Repeat
+```
+
+The ML model is repeatedly trained using information available at that point in time and then evaluated on a future block.
+
+This helps reduce **look-ahead bias** and provides a more realistic evaluation of trading strategies.
+
+---
+
+# 🧠 Q-Learning Methodology
+
+The RL agent represents the market using a compact state space based on:
+
+- RSI bucket
+- Trend bucket
+- Volatility bucket
+- Current position
+
+Actions:
+
+```text
+Flat
+Long
+```
+
+The agent learns using an ε-greedy exploration strategy and a Q-table.
+
+The compact state space is intentionally designed to keep the model:
+
+- Fast
+- Explainable
+- Easy to train
+- Suitable for academic demonstration
+
+---
+
+# 📌 Honest Results & Limitations
+
+Financial markets are highly noisy and difficult to predict.
+
+TradeSphere AI does not claim that machine learning can consistently predict market direction.
+
+The project documentation acknowledges that:
+
+- ML performance may remain close to random
+- ML strategies may fail to beat Buy & Hold
+- Transaction costs can reduce returns
+- Synthetic-market results can vary
+- The RL state space is intentionally small
+- The current system is long-only
+- The current evaluation focuses on single-asset trading
+- Slippage and liquidity are simplified
+- Sentiment and regime components are simplified
+
+The project's main objective is therefore **rigorous strategy evaluation, risk analysis, stress testing, and multi-agent experimentation**, rather than promising trading profits.
+
+---
+
+# 🔮 Future Enhancements
+
+- [ ] Deep Q-Network (DQN)
+- [ ] PPO reinforcement-learning agent
+- [ ] LSTM price forecasting
+- [ ] Transformer-based forecasting
+- [ ] FinBERT financial sentiment
+- [ ] Real-time news integration
+- [ ] Multi-asset portfolio RL
+- [ ] Short-selling support
+- [ ] Stop-loss / take-profit optimization
+- [ ] Slippage modelling
+- [ ] Real-time market data
+- [ ] Paper-trading API
+- [ ] Broker integration
+- [ ] Cloud-based ML inference
+
+---
+
+# 🎓 Concepts Demonstrated
+
+### Artificial Intelligence
+
+- Machine Learning
+- Reinforcement Learning
+- Multi-Agent Systems
+- Explainable AI
+- Sentiment Analysis
+
+### Machine Learning
+
+- Classification
+- Feature Engineering
+- Random Forest
+- Gradient Boosting
+- Logistic Regression
+- Walk-Forward Validation
+
+### Reinforcement Learning
+
+- Q-Learning
+- State Representation
+- Reward Engineering
+- ε-Greedy Exploration
+
+### Unsupervised Learning
+
+- Gaussian Mixture Models
+- Market Regime Detection
+
+### Quantitative Finance
+
+- Algorithmic Trading
+- Backtesting
+- Risk Management
+- Portfolio Optimization
+- Monte Carlo Simulation
+- VaR / CVaR
+- Sharpe Ratio
+- Maximum Drawdown
+
+---
+
+# 🎤 Viva & Interview Questions
+
+### Why did you use walk-forward validation?
+
+Financial data is time-dependent. Random train/test splitting can allow future information to influence training and produce unrealistic results.
+
+### Why use multiple trading agents?
+
+Different strategies behave differently under different market conditions. Comparing multiple agents gives a more comprehensive evaluation.
+
+### Why use Q-Learning?
+
+Q-Learning allows an agent to learn a trading policy through market states and rewards instead of only predicting future prices.
+
+### What is Sharpe Ratio?
+
+Sharpe Ratio measures risk-adjusted return by comparing excess return with portfolio volatility.
+
+### What is Maximum Drawdown?
+
+Maximum Drawdown represents the largest decline from a portfolio peak to a subsequent trough.
+
+### What is VaR?
+
+Value at Risk estimates a potential loss threshold at a selected confidence level.
+
+### What is CVaR?
+
+Conditional Value at Risk measures the average loss beyond the VaR threshold.
+
+### Why use market regime detection?
+
+Markets can behave differently during bullish, bearish, and sideways periods. Regime detection allows strategies to adapt to changing conditions.
+
+### What is the Agent Council?
+
+The Agent Council combines different strategy perspectives and produces a weighted consensus instead of relying on a single trading strategy.
+
+---
+
+# 📜 Disclaimer
+
+TradeSphere AI is strictly an **educational and research project**.
+
+The application:
+
+- Does not provide financial advice
+- Does not guarantee investment returns
+- Does not execute real trades
+- Does not connect to a live broker
+- Uses simulated signals in the deployed demonstration
+
+The live website itself states that the agent feed is simulated and is not connected to live market data or a broker.
+
+**Do not use the outputs of this project as a basis for real-world investment decisions.**
+
+---
+
+# 👨‍💻 Author
+
+## Pranab
+
+**TradeSphere AI**
+
+### Project Links
+
+🌐 **Live Website:**  
+https://trade-sphere-ai-ten.vercel.app/
+
+💻 **GitHub Repository:**  
+https://github.com/Pranabdevelop/TradeSphere-AI
+
+---
+
+## ⭐ Support the Project
+
+If you found TradeSphere AI interesting, consider giving the repository a ⭐ on GitHub.
+
+**Built with Machine Learning, Reinforcement Learning, Multi-Agent Systems, and Quantitative Finance.**
